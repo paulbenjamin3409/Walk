@@ -10,119 +10,148 @@ using Microsoft.Xna.Framework.Input;
 
 namespace WalkingGame
 {
-	/// <summary>
-	/// This is the main type for your game.
-	/// </summary>
-	public class Game1 : Game
-	{
-		GraphicsDeviceManager graphics;
-		SpriteBatch spriteBatch;
+    /// <summary>
+    /// This is the main type for your game.
+    /// </summary>
+    public class Game1 : Game
+    {
+        GraphicsDeviceManager graphics;
+        SpriteBatch spriteBatch;
 
-		CharacterEntity character;
+        CharacterEntity character;
 
-	    SpriteFont Font1;
-	    Vector2 FontPos;
+        SpriteFont DebugFont;
+        Vector2 FontPos;
 
-	    CharacterEntity[] charArray =new CharacterEntity[3];
+        CharacterEntity[] charArray = new CharacterEntity[3];
 
-        SpiralEntity spiral;
+        SpiralEntity[] spiralArray = new SpiralEntity[3];
 
+        DebugBox db;
 
-        public Game1 ()
-		{
-			graphics = new GraphicsDeviceManager (this);
-			Content.RootDirectory = "Content";	            
-			graphics.IsFullScreen = true;
-		    
+        public Game1()
+        {
+            graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
+            graphics.IsFullScreen = true;
+
 
         }
 
-		/// <summary>
-		/// Allows the game to perform any initialization it needs to before starting to run.
-		/// This is where it can query for any required services and load any non-graphic
-		/// related content.  Calling base.Initialize will enumerate through any components
-		/// and initialize them as well.
-		/// </summary>
-		protected override void Initialize ()
-		{
+        /// <summary>
+        /// Allows the game to perform any initialization it needs to before starting to run.
+        /// This is where it can query for any required services and load any non-graphic
+        /// related content.  Calling base.Initialize will enumerate through any components
+        /// and initialize them as well.
+        /// </summary>
+        protected override void Initialize()
+        {
             // create several characters
 
-		    charArray[0] = new CharacterEntity(this.GraphicsDevice);
-		    charArray[1] = new CharacterEntity(this.GraphicsDevice);
-		    charArray[2] = new CharacterEntity(this.GraphicsDevice);
+            charArray[0] = new CharacterEntity(this.GraphicsDevice);
 
-		    spiral = new SpiralEntity(this.GraphicsDevice);
+            spiralArray[0] = new SpiralEntity(this.GraphicsDevice);
 
-            base.Initialize ();
-				
-		}
+            db = new DebugBox(this.GraphicsDevice);
 
-		/// <summary>
-		/// LoadContent will be called once per game and is the place to load
-		/// all of your content.
-		/// </summary>
-		protected override void LoadContent ()
-		{
-			// Create a new SpriteBatch, which can be used to draw textures.
-			spriteBatch = new SpriteBatch (GraphicsDevice);
-		    
-		    Font1 = Content.Load<SpriteFont>("Font");
-            
-		    FontPos = new Vector2(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
+            base.Initialize();
+
         }
 
-		/// <summary>
-		/// Allows the game to run logic such as updating the world,
-		/// checking for collisions, gathering input, and playing audio.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-		protected override void Update (GameTime gameTime)
-		{
-		    foreach (var chctr in charArray)
-		    {
-		        chctr.Update(gameTime);
-            }
-		    
-			base.Update(gameTime);
-		}
+        /// <summary>
+        /// LoadContent will be called once per game and is the place to load
+        /// all of your content.
+        /// </summary>
+        protected override void LoadContent()
+        {
+            // Create a new SpriteBatch, which can be used to draw textures.
+            spriteBatch = new SpriteBatch(GraphicsDevice);
 
-		/// <summary>
-		/// This is called when the game should draw itself.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-		protected override void Draw(GameTime gameTime)
-		{
-			GraphicsDevice.Clear(Color.CornflowerBlue);
+            DebugFont = Content.Load<SpriteFont>("Font");
+            
+        }
 
-			// We'll start all of our drawing here:
-			spriteBatch.Begin ();
-
-            // Now we can do any entity rendering:
-		    int startingY = 128;
-		    int startingX = 128;
+        /// <summary>
+        /// Allows the game to run logic such as updating the world,
+        /// checking for collisions, gathering input, and playing audio.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Update(GameTime gameTime)
+        {
+            db.Font = DebugFont;
 
             foreach (var chctr in charArray)
-		    {
+            {
+                if (chctr == null)
+                    continue;
+
+                chctr.Update(gameTime);
+            }
+
+            // update spirals
+            foreach (var spiral in spiralArray)
+            {
+                if (spiral == null)
+                    continue;
+
+                if (spiral.On)
+                {
+                    spiral.Update(gameTime);
+                }
+
+
+            }
+
+            base.Update(gameTime);
+        }
+
+        /// <summary>
+        /// This is called when the game should draw itself.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+
+            // We'll start all of our drawing here:
+            spriteBatch.Begin();
+
+            // Now we can do any entity rendering:
+            int startingY = 256;
+            int startingX = 512;
+
+
+            // 
+            foreach (var chctr in charArray)
+            {
+                if (chctr == null)
+                    continue;
+
                 // draw from an array of characters
-		        chctr.Draw(spriteBatch, startingX, startingY);
-		        startingY += 128;
-		        startingX += 256;
-		    }
+                chctr.Draw(spriteBatch, startingX, startingY);
 
-		    spiral.Draw(spriteBatch, 512, 256);
+            }
+            // spiral
+            foreach (var spiralEntity in spiralArray)
+            {
+                if (spiralEntity == null)
+                    continue;
 
+                if (spiralEntity.On)
+                {
+                    spiralEntity.Draw(spriteBatch, 512, 256);
+                    
+                }
+                
 
-            // text
-            string output = "Hello World";
-		    Vector2 FontOrigin = Font1.MeasureString(output) / 2;
-		    spriteBatch.DrawString(Font1, output, FontPos, Color.Black,
-		        0, FontOrigin, 1.0f, SpriteEffects.None, 0.5f);
+            }
+
 
             // End renders all sprites to the screen:
-            spriteBatch.End ();
+            spriteBatch.End();
 
-			base.Draw(gameTime);
-		}
-	}
+            base.Draw(gameTime);
+        }
+    }
 }
 
